@@ -5,7 +5,7 @@ package.domain = com.kivy
 source.main = main.py
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,dm
-requirements = python3, kivy, kivymd, pygments, plyer, requests, beautifulsoup4, numpy, flask, pyyaml, pytest, scikit-learn, django, jnius
+requirements = python3, kivy, kivymd, pygments, plyer, requests, beautifulsoup4, numpy, flask, pyyaml, pytest, scikit-learn, django, psutil, pyjnius
 orientation = portrait
 presplash.filename = presplash.png  
 icon.filename = icon.png
@@ -16,7 +16,7 @@ android.accept_sdk_license = True
 android.api = 33
 android.ndk = 25b
 android.presplash_color = #000000
-android.permissions = MANAGE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, INTERNET
+android.permissions = WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, INTERNET
 
 # Versioning
 version = 0.2
