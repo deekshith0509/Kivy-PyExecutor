@@ -239,15 +239,45 @@ class KivyDualEditorApp(MDApp):
         self.zoom_level = 14
         self.debug_buffer = StringIO()
         self.ensure_storage_dir()
+        self.check_permissions()
 
     def build(self):
-        if platform == 'android':
-            from android.permissions import request_permissions, Permission
-            # Check and request permissions
-            permissions = ['Permission.WRITE_EXTERNAL_STORAGE', 'Permission.READ_EXTERNAL_STORAGE']
-            request_permissions(permissions)
         return Builder.load_string(KV_MAIN)
+    def check_permissions(self):
+        if platform == 'android':
+            from android.permissions import request_permissions, check_permission, Permission
+            # List of permissions needed
+            permissions = [
+                Permission.WRITE_EXTERNAL_STORAGE,
+                Permission.READ_EXTERNAL_STORAGE,
+                Permission.INTERNET,
+                Permission.READ_MEDIA_IMAGES,
+                Permission.READ_MEDIA_VIDEO,
+                Permission.READ_MEDIA_AUDIO
+            ]
+            
+            # Request permissions at runtime
+            request_permissions(permissions)
+    
+    def on_start(self):
+        # Alternative place to request permissions
+        self.check_permissions()
 
+    def check_storage_permissions(self):
+        """Check if storage permissions are granted"""
+        if platform == 'android':
+            return (
+                check_permission('android.permission.READ_EXTERNAL_STORAGE') and
+                check_permission('android.permission.WRITE_EXTERNAL_STORAGE')
+            )
+        return True
+
+    def handle_permissions_callback(self, permissions, grant_results):
+        """Handle permission request results"""
+        if all(grant_results):
+            print("All permissions granted!")
+        else:
+            print("Some permissions were denied.")
     def ensure_storage_dir(self):
         """Ensure storage directory exists and is writable"""
         try:
