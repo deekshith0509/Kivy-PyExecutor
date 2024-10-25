@@ -17,12 +17,15 @@ android.archs = arm64-v8a
 android.release_artifact = apk
 android.accept_sdk_license = True
 android.api = 33
+
+# (int) Minimum API your APK / AAB will support.
+android.minapi = 31    #most important !!!!!!
 android.ndk = 25b
 android.presplash_color = #000000
-android.permissions = WRITE_EXTERNAL_STORAGE
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
 # Versioning
-version = 0.2
+version = 0.3
 
 # Debug mode
 debug = 1
