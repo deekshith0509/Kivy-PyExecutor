@@ -19,7 +19,7 @@ android.accept_sdk_license = True
 android.api = 33
 
 # (int) Minimum API your APK / AAB will support.
-android.minapi = 31    #most important !!!!!!
+android.minapi = 31  
 android.ndk = 25b
 android.presplash_color = #000000
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
