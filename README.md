@@ -43,17 +43,10 @@
 - **File Management**: Enhance save/load functionality for better project management.
 - **Theming Options**: Provide different themes for user personalization.
 - **Help and Documentation**: Integrate help sections or tooltips for new users.
-
-# Kivy-Debugger Repository
-
-## Repository Overview
-The **Kivy-Debugger** repository supports the **PyExecution** application by providing tools and scripts for debugging Kivy applications.
-
 ## Features
 
 - **Debugging Tools**: Includes utilities for tracking down errors and issues within Kivy applications.
 - **Sample Code**: Provides examples and templates for common debugging scenarios in Kivy.
-- **Documentation**: Contains instructions on how to use the debugging tools effectively.
 
 ## Contributing
 Contributions are welcome! If you have suggestions or improvements, please create an issue or submit a pull request.
