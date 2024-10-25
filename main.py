@@ -242,7 +242,11 @@ class KivyDualEditorApp(MDApp):
         self.ensure_storage_dir()
 
     def build(self):
-        self.request_permissions()
+        if platform == 'android':
+            from android.permissions import request_permissions, Permission
+            # Check and request permissions
+            permissions = ['Permission.WRITE_EXTERNAL_STORAGE', 'Permission.READ_EXTERNAL_STORAGE']
+            request_permissions(permissions)
         return Builder.load_string(KV_MAIN)
 
     def ensure_storage_dir(self):
@@ -567,12 +571,6 @@ BoxLayout:
             self.show_error(f"Preview error: {str(e)}")
         
         self.root.current = 'preview'
-
-    def request_permissions(self):
-        if platform == 'android':
-            # Check and request permissions
-            permissions = ['android.permission.WRITE_EXTERNAL_STORAGE', 'android.permission.READ_EXTERNAL_STORAGE']
-            storage.request_permissions(permissions)
 
     def save_code(self):
         """Save code with error handling"""
