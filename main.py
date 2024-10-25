@@ -351,6 +351,8 @@ import requests
 def fetch_info(url):
     try:
         return requests.get(url).json()
+    except requests.ConnectionError:
+        print("Turn on internet for this code Snippet.")
     except Exception as e:
         print(f"Error: {e}")
 def print_info(data):
