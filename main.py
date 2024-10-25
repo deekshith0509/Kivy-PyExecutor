@@ -262,22 +262,10 @@ class KivyDualEditorApp(MDApp):
         return Builder.load_string(KV_MAIN)
 
     def check_and_request_storage_permissions(self):
-        if platform == 'android':
-            # For Android 11 and above
-            if Build.VERSION.SDK_INT >= 30:
-                # Check if we have all files access permission
-                if not Environment.isExternalStorageManager():
-                    self.show_storage_permission_dialog()
-                else:
-                    print("Already have all files access permission")
-                    return True
-            else:
-                # For Android 10 and below, check regular storage permissions
-                has_permission = check_permission('android.permission.WRITE_EXTERNAL_STORAGE')
-                if not has_permission:
-                    request_permissions([Permission.WRITE_EXTERNAL_STORAGE,
-                                      Permission.READ_EXTERNAL_STORAGE])
-                return has_permission
+        if not Environment.isExternalStorageManager():
+            self.show_storage_permission_dialog()
+        else:
+            print("Already have all files access permission")
         return True
 
     def show_storage_permission_dialog(self):
