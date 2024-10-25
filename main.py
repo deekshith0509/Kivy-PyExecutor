@@ -257,7 +257,6 @@ class KivyDualEditorApp(MDApp):
         self.zoom_level = 14
         self.debug_buffer = StringIO()
         self.ensure_storage_dir()
-        self.check_permissions()
 
     def build(self):
         return Builder.load_string(KV_MAIN)
