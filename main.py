@@ -113,7 +113,7 @@ ScreenManager:
                 MDBoxLayout:
                     size_hint_y: None
                     height: dp(50)
-                    padding: dp(10)
+                    padding: dp(0)
                     spacing: dp(10)
 
                     MDRaisedButton:
@@ -262,6 +262,9 @@ class KivyDualEditorApp(MDApp):
         return Builder.load_string(KV_MAIN)
 
     def check_and_request_storage_permissions(self):
+        if platform =='linux':
+            return
+            
         if not Environment.isExternalStorageManager():
             self.show_storage_permission_dialog()
         else:
@@ -344,19 +347,49 @@ class KivyDualEditorApp(MDApp):
 
     def get_initial_python_code(self):
         return '''# Simple test program
-import pkg_resources
+import importlib.metadata
+import sys
+import subprocess
+
+def get_tool_version(tool_name, command):
+    """Run a command to get the version of a tool."""
+    try:
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT, text=True)
+        version_line = output.strip().splitlines()[0]  # Grab the first line
+        return f"{tool_name}: {version_line}"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return f"{tool_name}: Not installed or not found"
 
 def list_installed_packages():
-    """List all installed packages with their versions."""
-    installed_packages = pkg_resources.working_set
-    sorted_packages = sorted([(d.project_name, d.version) for d in installed_packages])
+    """List all installed packages and system tools with essential information."""
 
-    print(f"{'Library':<40} {'Version':<15}")
-    print("=" * 55)
+    # System tools information
+    system_tools = {
+        'Python': [sys.executable, '--version'],
+        'GCC': ['gcc', '--version'],
+        'CMake': ['cmake', '--version'],
+        'pip': [sys.executable, '-m', 'pip', '--version']
+    }
+
+    print("\nSystem Tools")
+    print("=" * 30)
+    for tool_name, command in system_tools.items():
+        print(get_tool_version(tool_name, command))
     
-    for package in sorted_packages:
-        package_name, version = package
-        print(f"{package_name:<40} {version:<15}")
+    # Installed Python packages
+    print("\nInstalled Python Packages")
+    print("=" * 80)
+    print(f"{'Library':<25} {'Version':<10} {'Summary'}")
+
+    for package in sorted(importlib.metadata.distributions(), key=lambda x: x.metadata['Name'].lower()):
+        try:
+            name = package.metadata['Name']
+            version = package.version
+            summary = package.metadata.get('Summary', 'No summary available')
+
+            print(f"{name:<25} {version:<10} {summary}")
+        except KeyError as e:
+            print(f"{name}: Error retrieving details - {e}")
 
 if __name__ == "__main__":
     list_installed_packages()
