@@ -1,7 +1,6 @@
 import os
 from kivy.utils import platform
 from kivy.app import App
-from plyer import storage
 import os
 import sys
 import logging
