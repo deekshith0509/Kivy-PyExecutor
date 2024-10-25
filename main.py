@@ -1,4 +1,8 @@
 import os
+from kivy.utils import platform
+from kivy.app import App
+from plyer import storage
+import os
 import sys
 import logging
 import traceback
@@ -238,9 +242,7 @@ class KivyDualEditorApp(MDApp):
         self.ensure_storage_dir()
 
     def build(self):
-        if platform == 'android': ##########################experimental android has to be replaced.
-            from android.permissions import request_permissions, Permission
-            request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.INTERNET])
+        self.request_permissions()
         return Builder.load_string(KV_MAIN)
 
     def ensure_storage_dir(self):
@@ -566,19 +568,28 @@ BoxLayout:
         
         self.root.current = 'preview'
 
+    def request_permissions(self):
+        if platform == 'android':
+            # Check and request permissions
+            permissions = ['android.permission.WRITE_EXTERNAL_STORAGE', 'android.permission.READ_EXTERNAL_STORAGE']
+            storage.request_permissions(permissions)
+
     def save_code(self):
         """Save code with error handling"""
         try:
+            directory = '/sdcard/1-kivy/'
+            os.makedirs(directory, exist_ok=True)  # Create the directory if it does not exist
+            
             python_code = self.root.get_screen('main').ids.python_editor.text
             kv_code = self.root.get_screen('main').ids.kv_editor.text
             
             # Save Python code
-            python_file = os.path.join(self.user_data_dir, 'saved_code.py')
+            python_file = os.path.join(directory, 'saved_code.py')
             with open(python_file, 'w') as f:
                 f.write(python_code)
             
             # Save KV code
-            kv_file = os.path.join(self.user_data_dir, 'saved_code.kv')
+            kv_file = os.path.join(directory, 'saved_code.kv')
             with open(kv_file, 'w') as f:
                 f.write(kv_code)
             
@@ -590,9 +601,11 @@ BoxLayout:
     def load_code(self):
         """Load code with error handling"""
         try:
+            directory = '/sdcard/1-kivy/'
+            
             # Load Python code
-            python_file = os.path.join(self.user_data_dir, 'saved_code.py')
-            kv_file = os.path.join(self.user_data_dir, 'saved_code.kv')
+            python_file = os.path.join(directory, 'saved_code.py')
+            kv_file = os.path.join(directory, 'saved_code.kv')
             
             if not os.path.exists(python_file) or not os.path.exists(kv_file):
                 self.show_message("No saved code found.")
@@ -609,6 +622,7 @@ BoxLayout:
         except Exception as e:
             self.show_error(f"Error loading code: {str(e)}")
 
+    
     def show_message(self, message):
         """Show a message in debug screen"""
         debug_screen = self.root.get_screen('debug')
