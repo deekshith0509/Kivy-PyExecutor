@@ -348,18 +348,25 @@ class KivyDualEditorApp(MDApp):
     def get_initial_python_code(self):
         return '''# Simple test program
 import requests
-def fetch_info_from_gist(url):
+def fetch_info(url):
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.json()
+        return requests.get(url).json()
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Error: {e}")
+def print_info(data):
+    if isinstance(data, dict):
+        for k, v in data.items():
+            print(f"{k}:")
+            print_info(v)
+    elif isinstance(data, list):
+        for item in data:
+            print_info(item)
+    else:
+        print(data)
 if __name__ == "__main__":
-    gist_url = 'https://gist.github.com/deekshith0509/59dde995eb386530344d7997cca2c929/raw'
-    info = fetch_info_from_gist(gist_url)
-    if info:
-        print(info)
+    url = 'https://gist.github.com/deekshith0509/59dde995eb386530344d7997cca2c929/raw'
+    info = fetch_info(url)
+    if info: print_info(info)
 
 '''
 
