@@ -426,7 +426,6 @@ BoxLayout:
         pos_hint: {'center_x': 0.5}
         size_hint_y: None
         height: dp(40)
-        on_release: app.submit_name()
 
     MDLabel:
         text: 'Choose your options:'
