@@ -6,6 +6,9 @@ source.main = main.py
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,dm
 requirements = python3, kivy, kivymd, pygments, plyer, requests, beautifulsoup4, numpy, flask, pyyaml, pytest, scikit-learn, django, psutil,materialyoucolor,exceptiongroup,asyncgui,asynckivy, pyjnius
+
+requirements = python3, kivy, kivymd,pygments, qrcode, plyer, requests, beautifulsoup4, numpy, flask, pyyaml, pytest, scikit-learn, django, psutil, materialyoucolor, exceptiongroup, asyncgui, asynckivy, pyjnius, Pillow, urllib3, setuptools, libffi
+
 orientation = portrait
 presplash.filename = presplash.png  
 icon.filename = icon.png
