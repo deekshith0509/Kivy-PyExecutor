@@ -347,9 +347,77 @@ class KivyDualEditorApp(MDApp):
 
     def get_initial_python_code(self):
         return '''# Simple test program
-import importlib.metadata
+import os
 import sys
 import subprocess
+import platform
+
+def get_system_info():
+    """Retrieve and display system information."""
+    system_info = {
+        "OS": platform.system(),
+        "OS Version": platform.version(),
+        "OS Release": platform.release(),
+        "Architecture": platform.architecture(),
+        "Python Version": sys.version,
+        "Python Executable": sys.executable,
+    }
+    
+    print("\nSystem Information")
+    print("=" * 30)
+    for key, value in system_info.items():
+        print(f"{key}: {value}")
+
+def get_installed_packages():
+    """Retrieve a list of installed packages with their metadata."""
+    # Check for site-packages directory
+    site_packages = next((p for p in sys.path if 'site-packages' in p), None)
+
+    if site_packages is None:
+        print("Error: No site-packages directory found.")
+        return []
+
+    packages_info = []
+
+    for package_name in os.listdir(site_packages):
+        package_path = os.path.join(site_packages, package_name)
+
+        if os.path.isdir(package_path):
+            metadata_file = os.path.join(package_path, 'METADATA')
+            if not os.path.exists(metadata_file):
+                metadata_file = os.path.join(package_path, 'PKG-INFO')
+
+            if os.path.exists(metadata_file):
+                with open(metadata_file, 'r') as f:
+                    metadata = f.read().strip().splitlines()
+                
+                name = None
+                version = None
+                summary = "No summary available"
+                
+                for line in metadata:
+                    if line.startswith('Name: '):
+                        name = line.split('Name: ')[1]
+                    elif line.startswith('Version: '):
+                        version = line.split('Version: ')[1]
+                    elif line.startswith('Summary: '):
+                        summary = line.split('Summary: ')[1]
+                
+                if name and version:
+                    packages_info.append((name, version, summary))
+    
+    return packages_info
+
+def list_installed_packages():
+    """List all installed packages with essential information."""
+    print("\nInstalled Python Packages")
+    print("=" * 80)
+    print(f"{'Library':<25} {'Version':<10} {'Summary'}")
+
+    packages_info = get_installed_packages()
+
+    for name, version, summary in packages_info:
+        print(f"{name:<25} {version:<10} {summary}")
 
 def get_tool_version(tool_name, command):
     """Run a command to get the version of a tool."""
@@ -359,9 +427,13 @@ def get_tool_version(tool_name, command):
         return f"{tool_name}: {version_line}"
     except (subprocess.CalledProcessError, FileNotFoundError):
         return f"{tool_name}: Not installed or not found"
+    except PermissionError:
+        return f"{tool_name}: Permission denied"
 
-def list_installed_packages():
-    """List all installed packages and system tools with essential information."""
+def list_system_tools():
+    """List important system tools and their versions."""
+    print("\nSystem Tools")
+    print("=" * 30)
 
     # System tools information
     system_tools = {
@@ -371,28 +443,55 @@ def list_installed_packages():
         'pip': [sys.executable, '-m', 'pip', '--version']
     }
 
-    print("\nSystem Tools")
-    print("=" * 30)
     for tool_name, command in system_tools.items():
         print(get_tool_version(tool_name, command))
-    
-    # Installed Python packages
-    print("\nInstalled Python Packages")
-    print("=" * 80)
-    print(f"{'Library':<25} {'Version':<10} {'Summary'}")
 
-    for package in sorted(importlib.metadata.distributions(), key=lambda x: x.metadata['Name'].lower()):
-        try:
-            name = package.metadata['Name']
-            version = package.version
-            summary = package.metadata.get('Summary', 'No summary available')
+def check_tool_availability(tool_name):
+    """Check if a tool is available in the environment."""
+    try:
+        __import__(tool_name)  # Attempt to import the tool
+        return f"{tool_name}: Available"
+    except ImportError:
+        return f"{tool_name}: Not available"
 
-            print(f"{name:<25} {version:<10} {summary}")
-        except KeyError as e:
-            print(f"{name}: Error retrieving details - {e}")
+def generate_requirements_file():
+    """Generate a requirements.txt file from installed packages."""
+    packages_info = get_installed_packages()
+
+    with open("requirements.txt", "w") as f:
+        for name, version, _ in packages_info:
+            f.write(f"{name}=={version}\n")
+
+def install_package(package_name):
+    """Install a package using pip."""
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        print(f"Successfully installed: {package_name}")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to install {package_name}: {e}")
 
 if __name__ == "__main__":
+    # Display system information
+    get_system_info()
+
+    # List installed packages
     list_installed_packages()
+    
+    # List system tools
+    list_system_tools()
+
+    # Check tool availability
+    print("\nTool Availability")
+    print("=" * 30)
+    print(check_tool_availability('numpy'))  # Example: Check if numpy is available
+    print(check_tool_availability('gcc'))    # Example: Check if gcc is available
+    
+    # Generate requirements file
+    generate_requirements_file()
+    
+    # Uncomment the line below to install a package (for demonstration)
+    # install_package('requests')  # Example: Install requests
+    
 '''
 
     def get_initial_kv_code(self):
