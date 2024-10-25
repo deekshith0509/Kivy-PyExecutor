@@ -59,7 +59,7 @@ The **Kivy-Debugger** repository supports the **PyExecution** application by pro
 Contributions are welcome! If you have suggestions or improvements, please create an issue or submit a pull request.
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
-For any inquiries or further information, please reach out via [your email or contact method].
+For any inquiries or further information, please reach out via deekshith.bh0509@gmail.com.
