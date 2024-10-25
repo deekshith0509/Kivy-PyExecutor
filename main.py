@@ -23,9 +23,7 @@ logger.setLevel(logging.DEBUG)
 stream_handler = logging.StreamHandler()
 logger.addHandler(stream_handler)
 
-if platform == 'android': ##########################experimental android has to be replaced.
-    from android.permissions import request_permissions, Permission
-    request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.INTERNET])
+
 KV_MAIN = '''
 ScreenManager:
     MainScreen:
@@ -124,6 +122,7 @@ ScreenManager:
                     font_size: '14sp'
                     text: app.get_initial_kv_code()
 
+
 <DebugScreen>:
     name: 'debug'
     MDBoxLayout:
@@ -165,13 +164,18 @@ ScreenManager:
                     size_hint_y: None
                     height: self.texture_size[1]
 
-                MDLabel:
+                # Replace MDLabel with TextInput
+                TextInput:
                     id: debug_text
                     text: ""
                     size_hint_y: None
-                    height: self.texture_size[1]
+                    height: self.minimum_height  # This allows it to expand with content
                     halign: 'left'
-                    markup: True
+                    readonly: True  # Set to True to prevent editing
+                    multiline: True  # Allow for multiple lines of text
+                    background_color: [1, 1, 1, 1]  # Optional: Set background color if needed
+                    font_size: '14sp'  # Adjust font size if desired
+                    padding: dp(5)  # Add padding for a better look
 
 <PreviewScreen>:
     name: 'preview'
@@ -234,6 +238,9 @@ class KivyDualEditorApp(MDApp):
         self.ensure_storage_dir()
 
     def build(self):
+        if platform == 'android': ##########################experimental android has to be replaced.
+            from android.permissions import request_permissions, Permission
+            request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.INTERNET])
         return Builder.load_string(KV_MAIN)
 
     def ensure_storage_dir(self):
@@ -252,39 +259,22 @@ class KivyDualEditorApp(MDApp):
 
     def get_initial_python_code(self):
         return '''# Simple test program
+import pkg_resources
 
-import platform
-import psutil
-import sys
-from datetime import datetime
+def list_installed_packages():
+    """List all installed packages with their versions."""
+    installed_packages = pkg_resources.working_set
+    sorted_packages = sorted([(d.project_name, d.version) for d in installed_packages])
 
-def system_info():
-    print("="*30)
-    print("      System Information")
-    print("="*30)
-    print(f"System      : {platform.system()}")
-    print(f"Node Name   : {platform.node()}")
-    print(f"Release     : {platform.release()}")
-    print(f"Version     : {platform.version()}")
-    print(f"Machine     : {platform.machine()}")
-    print(f"Processor   : {platform.processor()}")
-    print(f"CPU Cores   : {psutil.cpu_count(logical=False)} physical, {psutil.cpu_count(logical=True)} logical")
-    print(f"CPU Usage   : {psutil.cpu_percent(interval=1)}%")
-    print(f"Memory      : {psutil.virtual_memory().total / (1024**3):.2f} GB")
-    print(f"Available   : {psutil.virtual_memory().available / (1024**3):.2f} GB")
-    print(f"Used Memory : {psutil.virtual_memory().used / (1024**3):.2f} GB ({psutil.virtual_memory().percent}%)")
-    print(f"Boot Time   : {datetime.fromtimestamp(psutil.boot_time()).strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Python Ver  : {sys.version.split()[0]}")
-    print("="*30)
-    print("     The Power of Python")
-    print("="*30)
-    print("Python is versatile, powerful, and easy to learn. It is used in web dev, data science, AI, scientific computing, and more. Python's extensive libraries and simple syntax make it ideal for rapid development and complex problem-solving.")
-    print("="*30)
+    print(f"{'Library':<40} {'Version':<15}")
+    print("=" * 55)
+    
+    for package in sorted_packages:
+        package_name, version = package
+        print(f"{package_name:<40} {version:<15}")
 
 if __name__ == "__main__":
-    system_info()
-
-
+    list_installed_packages()
 '''
 
     def get_initial_kv_code(self):
@@ -400,8 +390,11 @@ BoxLayout:
 
 '''
 
+
+
+
     def run_code(self):
-        """Run Python code with proper error handling"""
+        """Run Python code with proper error handling and paginated output"""
         try:
             # Get the code
             python_code = self.root.get_screen('main').ids.python_editor.text.strip()
@@ -429,13 +422,42 @@ BoxLayout:
                     print("\nTraceback:")
                     traceback.print_exc(file=self.debug_buffer)
             
-            # Display output
+            # Get the complete output
             output = self.debug_buffer.getvalue()
+            
+            # Process and display output
             debug_screen = self.root.get_screen('debug')
             if output:
-                debug_screen.ids.debug_text.text = output
+                # Split output into lines
+                output_lines = output.splitlines()
+                total_lines = len(output_lines)
+                
+                if total_lines > 500:
+                    # Initialize pagination attributes
+                    self.current_page = 1
+                    self.lines_per_page = 500
+                    self.total_pages = (total_lines + self.lines_per_page - 1) // self.lines_per_page
+                    
+                    # Store complete output for pagination
+                    self.full_output = output_lines
+                    
+                    # Display first page
+                    self._display_current_page(debug_screen)
+                    
+                    # Add pagination controls if they don't exist
+                    if not hasattr(debug_screen.ids, 'pagination_controls'):
+                        self._create_pagination_controls(debug_screen)
+                else:
+                    # For smaller outputs, display everything
+                    debug_screen.ids.debug_text.text = output
+                    
+                    # Hide pagination controls if they exist
+                    if hasattr(debug_screen.ids, 'pagination_controls'):
+                        debug_screen.ids.pagination_controls.opacity = 0
             else:
                 debug_screen.ids.debug_text.text = "Code executed successfully with no output."
+                if hasattr(debug_screen.ids, 'pagination_controls'):
+                    debug_screen.ids.pagination_controls.opacity = 0
             
             # Clean up
             try:
@@ -447,6 +469,65 @@ BoxLayout:
             self.show_error(f"Error running code: {str(e)}\n{traceback.format_exc()}")
         
         self.root.current = 'debug'
+
+    def _display_current_page(self, debug_screen):
+        """Display the current page of output"""
+        start_idx = (self.current_page - 1) * self.lines_per_page
+        end_idx = min(start_idx + self.lines_per_page, len(self.full_output))
+        
+        current_chunk = '\n'.join(self.full_output[start_idx:end_idx])
+        debug_screen.ids.debug_text.text = (
+            f"Showing page {self.current_page} of {self.total_pages}\n"
+            f"Lines {start_idx + 1}-{end_idx} of {len(self.full_output)}\n"
+            f"{'='*50}\n\n"
+            f"{current_chunk}"
+        )
+
+    def _create_pagination_controls(self, debug_screen):
+        """Create and add pagination control buttons"""
+        from kivy.uix.boxlayout import BoxLayout
+        from kivy.uix.button import Button
+        
+        # Create a horizontal layout for pagination controls
+        pagination_layout = BoxLayout(
+            size_hint_y=None,
+            height='48dp',
+            spacing='10dp',
+            padding='10dp'
+        )
+        
+        # Previous page button
+        prev_button = Button(
+            text='Previous',
+            size_hint_x=None,
+            width='100dp',
+            on_release=lambda x: self._change_page(-1)
+        )
+        
+        # Next page button
+        next_button = Button(
+            text='Next',
+            size_hint_x=None,
+            width='100dp',
+            on_release=lambda x: self._change_page(1)
+        )
+        
+        pagination_layout.add_widget(prev_button)
+        pagination_layout.add_widget(next_button)
+        
+        # Add the layout to the debug screen
+        debug_screen.add_widget(pagination_layout)
+        debug_screen.ids.pagination_controls = pagination_layout
+
+    def _change_page(self, direction):
+        """Change the current page by the specified direction (+1 or -1)"""
+        new_page = self.current_page + direction
+        
+        if 1 <= new_page <= self.total_pages:
+            self.current_page = new_page
+            self._display_current_page(self.root.get_screen('debug'))
+            
+        
 
     def view_preview(self):
         """Preview KV code with error handling"""
