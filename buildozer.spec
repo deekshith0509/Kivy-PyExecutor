@@ -5,7 +5,7 @@ package.domain = com.kivy
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,dm
 source.main = main.py
-requirements = python3, kivy, kivymd, pygments, qrcode, plyer, requests, beautifulsoup4, numpy, flask, pyyaml, pytest, scikit-learn, django, psutil, materialyoucolor, exceptiongroup, asyncgui, asynckivy, pyjnius, Pillow, urllib3, setuptools, libffi
+requirements = python3, kivy, kivymd, pygments, qrcode, plyer, requests, beautifulsoup4, numpy, flask, pyyaml, pytest, scikit-learn, django, psutil, materialyoucolor, exceptiongroup, asyncgui, asynckivy, pyjnius, Pillow, urllib3, ffmpeg-kit-python, setuptools, libffi
 orientation = portrait
 presplash.filename = presplash.png  
 icon.filename = icon.png
@@ -28,3 +28,4 @@ warn_on_root = 1
 
 android.allow_backup = True
 android.logcat = True
+
